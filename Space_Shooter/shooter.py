@@ -29,7 +29,7 @@ class Player(pygame.sprite.Sprite):
         self.rect.center += self.direction * self.speed * dt
         
         if pygame.key.get_just_pressed()[pygame.K_SPACE] and self.can_shoot:  
-           Laser(laser_surf, self.rect.midtop, all_sprites)
+           Laser(laser_surf, self.rect.midtop, (all_sprites, laser_sprites))
            self.can_shoot = False   
            self.laser_shoot_time = pygame.time.get_ticks()
 
@@ -60,7 +60,7 @@ class Meteor(pygame.sprite.Sprite):
         self.rect = self.image.get_frect(center = pos)
         self.start_time = pygame.time.get_ticks()
         self.lifetime = 3000
-        self.direction = pygame.Vector2((-0.5, 0.5), 1)
+        self.direction = pygame.Vector2(uniform(-0.5, 0.5), 1)
         self.speed = randint(400,500)
 
     def update(self, dt):
@@ -68,6 +68,17 @@ class Meteor(pygame.sprite.Sprite):
         if pygame.time.get_ticks() - self.start_time >= self.lifetime:
             self.kill()
         
+def collisions():
+    global running
+    
+    collision_sprites = pygame.sprite.spritecollide(player, meteor_sprites, True)
+    if collision_sprites:
+        running = False
+
+    for laser in laser_sprites:
+       collided_sprites = pygame.sprite.spritecollide(laser, meteor_sprites, True)
+       if collided_sprites:
+        laser.kill()
 
 #setup
 pygame.init()
@@ -84,6 +95,8 @@ laser_surf = pygame.image.load(join('images', 'laser.png'))
 
 #sprtes
 all_sprites = pygame.sprite.Group()
+meteor_sprites = pygame.sprite.Group()
+laser_sprites = pygame.sprite.Group()
 for i in range(20):
     Star(all_sprites, star_surf) 
 player = Player(all_sprites)
@@ -92,6 +105,7 @@ player = Player(all_sprites)
 #meteor event
 meteor_event = pygame.event.custom_type()
 pygame.time.set_timer(meteor_event, 500)
+
 
 while running:
     dt = clock.tick() / 1000
@@ -102,13 +116,17 @@ while running:
 
         if event.type == meteor_event:
             x, y = randint(0, WINDOW_WIDTH), randint(-200, -100)
-            Meteor(meteor_surf, (x, y), all_sprites)
+            Meteor(meteor_surf, (x, y), (all_sprites, meteor_sprites))
     
+    #update
     all_sprites.update(dt)
+    collisions()
 
     #draw the game
     display_surf.fill('azure3')
     all_sprites.draw(display_surf)
+ 
+
     pygame.display.update()
 
 pygame.quit()
