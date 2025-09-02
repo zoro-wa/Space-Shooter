@@ -14,6 +14,10 @@ class Player(pygame.sprite.Sprite):
         self.can_shoot = True
         self.laser_shoot_time = 0
         self.cooldown_duration = 400
+        
+        #mask
+        self.mask = pygame.mask.from_surface(self.image)
+        
 
     def laser_timer(self):
         if not self.can_shoot:
@@ -47,7 +51,7 @@ class Laser(pygame.sprite.Sprite):
         super().__init__(groups)
         self.image = surf
         self.rect = self.image.get_frect(midbottom = pos)
-    
+
     def update(self, dt):
         self.rect.centery -= 400 * dt
         if self.rect.bottom < 0:
@@ -62,7 +66,7 @@ class Meteor(pygame.sprite.Sprite):
         self.lifetime = 3000
         self.direction = pygame.Vector2(uniform(-0.5, 0.5), 1)
         self.speed = randint(400,500)
-
+       
     def update(self, dt):
         self.rect.center += self.direction * self.speed * dt
         if pygame.time.get_ticks() - self.start_time >= self.lifetime:
@@ -71,7 +75,7 @@ class Meteor(pygame.sprite.Sprite):
 def collisions():
     global running
 
-    collision_sprites = pygame.sprite.spritecollide(player, meteor_sprites, True)
+    collision_sprites = pygame.sprite.spritecollide(player, meteor_sprites, True, pygame.sprite.collide_mask)
     if collision_sprites:
         running = False
 
